@@ -42,11 +42,22 @@ svgHeader = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n\
 svgFooter :: String
 svgFooter = "</svg>"
 svgDot :: Double -> Double -> String
-svgDot x y = "<circle r=\"5\" cx=\"" ++ show (correctXCoord x) ++ "\" cy=\"" ++ show (correctYCoord y) ++ "\" style=\"fill:#0000ff;fill-opacity:1;\" />"
+svgDot x y = "<circle r=\"3\" cx=\"" ++ show (correctXCoord x) ++ "\" cy=\"" ++ show (correctYCoord y) ++ "\" style=\"fill:#0000ff;fill-opacity:1;\" />"
+svgLine :: Double -> Double -> Double -> Double -> String
+svgLine x0 y0 x1 y1 = "<line x1=\"" ++ show (correctXCoord x0) ++ "\" y1=\"" ++ show (correctYCoord y0) ++ "\" x2=\"" ++ show (correctXCoord x1) ++ "\" y2=\"" ++ show (correctYCoord y1) ++ "\" style=\"stroke:#ff00ff;stroke-width:1px;stroke-opacity:1\"/>"
 
+overlappedZnSeries :: [[(Complex Double, Complex Double)]]
+overlappedZnSeries = map (\ps -> zip ps (tail ps)) znSeries
+svgLines :: String
+svgLines = (unlines . concat) $ (map . map) (\ps -> svgLine (realPart $ fst ps) (imagPart $ fst ps) (realPart $ snd ps) (imagPart $ snd ps)) overlappedZnSeries
+svgDots :: String
+svgDots = unlines [svgDot (realPart p) (imagPart p) | ps <- znSeries, p <- ps]
+
+svgBody :: String
+svgBody = unlines [svgDots, svgLines]
 fullSvgImage :: String
 fullSvgImage = unlines [ svgHeader,
-                         unlines [svgDot (realPart p) (imagPart p) | ps <- znSeries, p <- ps],
+                         svgBody,
                          svgFooter ]
 main :: IO ()
 main = putStrLn fullSvgImage
