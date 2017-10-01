@@ -1,4 +1,5 @@
 import Data.Complex
+import Data.Char
 import Config
 
 type Grid = [Complex Double]
@@ -43,13 +44,17 @@ svgFooter :: String
 svgFooter = "</svg>"
 svgDot :: Double -> Double -> String
 svgDot x y = "<circle r=\"3\" cx=\"" ++ show (correctXCoord x) ++ "\" cy=\"" ++ show (correctYCoord y) ++ "\" style=\"fill:#0000ff;fill-opacity:1;\" />"
-svgLine :: Double -> Double -> Double -> Double -> String
-svgLine x0 y0 x1 y1 = "<line x1=\"" ++ show (correctXCoord x0) ++ "\" y1=\"" ++ show (correctYCoord y0) ++ "\" x2=\"" ++ show (correctXCoord x1) ++ "\" y2=\"" ++ show (correctYCoord y1) ++ "\" style=\"stroke:#ff00ff;stroke-width:1px;stroke-opacity:1\"/>"
+svgLine :: Double -> Double -> Double -> Double -> String -> String
+svgLine x0 y0 x1 y1 color = "<line x1=\"" ++ show (correctXCoord x0) ++ "\" y1=\"" ++ show (correctYCoord y0) ++ "\" x2=\"" ++ show (correctXCoord x1) ++ "\" y2=\"" ++ show (correctYCoord y1) ++ "\" style=\"stroke:#" ++ color ++ ";stroke-width:1px;stroke-opacity:1\"/>"
 
-overlappedZnSeries :: [[(Complex Double, Complex Double)]]
-overlappedZnSeries = map (\ps -> zip ps (tail ps)) znSeries
+overlappedZnSeries :: [(Complex Double, Complex Double)]
+overlappedZnSeries = concat $ map (\ps -> zip ps (tail ps)) znSeries
+colorSeries :: [String]
+colorSeries = map (intToDigit . floor . (redistribute 1.0 (fromIntegral steps) 1.0 15.0) . fromIntegral) [1 .. steps]
 svgLines :: String
-svgLines = (unlines . concat) $ (map . map) (\ps -> svgLine (realPart $ fst ps) (imagPart $ fst ps) (realPart $ snd ps) (imagPart $ snd ps)) overlappedZnSeries
+svgLines = unlines $ map (lineConnectingZnTuples) overlappedZnSeries
+    where
+        lineConnectingZnTuples ps = svgLine (realPart $ fst ps) (imagPart $ fst ps) (realPart $ snd ps) (imagPart $ snd ps) "ff00ff"
 svgDots :: String
 svgDots = unlines [svgDot (realPart p) (imagPart p) | ps <- znSeries, p <- ps]
 
