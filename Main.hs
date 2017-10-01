@@ -27,7 +27,7 @@ znSeries = map (buildZnSeries steps) baseGrid
 correctXCoord :: Double -> Double
 correctXCoord x = redistribute minX maxX 0.0 (fromIntegral imageWidth) x
 correctYCoord :: Double -> Double
-correctYCoord y = redistribute minY maxY 0.0 (fromIntegral imageHeight) y
+correctYCoord y = redistribute minY maxY (fromIntegral imageHeight) 0.0 y
 svgHeader :: String
 svgHeader = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n\
 \<svg\n\
