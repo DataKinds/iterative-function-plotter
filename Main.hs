@@ -1,5 +1,5 @@
 import Data.Complex
-import Data.Char
+import Numeric
 import Config
 
 type Grid = [Complex Double]
@@ -47,14 +47,22 @@ svgDot x y = "<circle r=\"3\" cx=\"" ++ show (correctXCoord x) ++ "\" cy=\"" ++ 
 svgLine :: Double -> Double -> Double -> Double -> String -> String
 svgLine x0 y0 x1 y1 color = "<line x1=\"" ++ show (correctXCoord x0) ++ "\" y1=\"" ++ show (correctYCoord y0) ++ "\" x2=\"" ++ show (correctXCoord x1) ++ "\" y2=\"" ++ show (correctYCoord y1) ++ "\" style=\"stroke:#" ++ color ++ ";stroke-width:1px;stroke-opacity:1\"/>"
 
-overlappedZnSeries :: [(Complex Double, Complex Double)]
-overlappedZnSeries = concat $ map (\ps -> zip ps (tail ps)) znSeries
 colorSeries :: [String]
-colorSeries = map (intToDigit . floor . (redistribute 1.0 (fromIntegral steps) 1.0 15.0) . fromIntegral) [1 .. steps]
+colorSeries = map (hexConv) colorRange
+    where
+        colorRange = map (floor . (redistribute 1.0 (fromIntegral steps) 10.0 255.0) . fromIntegral) [1 .. steps]
+        hexConv n = if n < 16 then "0" ++ showHex n "" else showHex n ""
+
+data ColoredLine = ColoredLine {fstPoint  :: Complex Double,
+                                sndPoint  :: Complex Double,
+                                lineColor :: String}
+
+overlappedZnSeries :: [ColoredLine]
+overlappedZnSeries = concat $ map (\ps -> zipWith3 (ColoredLine) ps (tail ps) (reverse colorSeries)) znSeries
+lineConnectingZnTuples :: ColoredLine -> String
+lineConnectingZnTuples ps = svgLine (realPart $ fstPoint ps) (imagPart $ fstPoint ps) (realPart $ sndPoint ps) (imagPart $ sndPoint ps) (lineColor ps)
 svgLines :: String
 svgLines = unlines $ map (lineConnectingZnTuples) overlappedZnSeries
-    where
-        lineConnectingZnTuples ps = svgLine (realPart $ fst ps) (imagPart $ fst ps) (realPart $ snd ps) (imagPart $ snd ps) "ff00ff"
 svgDots :: String
 svgDots = unlines [svgDot (realPart p) (imagPart p) | ps <- znSeries, p <- ps]
 
