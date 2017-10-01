@@ -67,7 +67,8 @@ svgDots :: String
 svgDots = unlines [svgDot (realPart p) (imagPart p) | ps <- znSeries, p <- ps]
 
 svgBody :: String
-svgBody = unlines [svgDots, svgLines]
+--svgBody = unlines [svgDots, svgLines]
+svgBody = svgLines
 fullSvgImage :: String
 fullSvgImage = unlines [ svgHeader,
                          svgBody,
